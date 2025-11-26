@@ -2,9 +2,12 @@ import pg, { QueryResultRow } from 'pg';
 
 const { Pool } = pg;
 
+// SSL: Use DATABASE_SSL env var (defaults to false for Coolify internal connections)
+const sslEnabled = process.env.DATABASE_SSL === 'true';
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: sslEnabled ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
