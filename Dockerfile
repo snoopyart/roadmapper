@@ -2,13 +2,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Ensure we're in development mode for build (need devDependencies)
+ENV NODE_ENV=development
+
 # Copy package files for all workspaces
 COPY package*.json ./
 COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install all dependencies
-RUN npm ci
+# Install all dependencies (including devDependencies for build)
+RUN npm ci --include=dev
 
 # Copy source code
 COPY client/ ./client/
