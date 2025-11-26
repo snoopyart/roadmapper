@@ -1,6 +1,16 @@
 import { useCallback, useEffect } from 'react';
 import { useRoadmapContext } from '../context/RoadmapContext';
-import type { TimelineEntry, Orientation, FontSize, EntryShape, Endpoints } from '../types';
+import type {
+  TimelineEntry,
+  Orientation,
+  FontSize,
+  EntryShape,
+  FontFamily,
+  LineStyle,
+  LineThickness,
+  CustomColors,
+  Endpoints,
+} from '../types';
 
 export function useRoadmap() {
   const {
@@ -90,6 +100,34 @@ export function useRoadmap() {
     [dispatch]
   );
 
+  const setFontFamily = useCallback(
+    (fontFamily: FontFamily) => {
+      dispatch({ type: 'SET_FONT_FAMILY', payload: { fontFamily } });
+    },
+    [dispatch]
+  );
+
+  const setLineStyle = useCallback(
+    (lineStyle: LineStyle) => {
+      dispatch({ type: 'SET_LINE_STYLE', payload: { lineStyle } });
+    },
+    [dispatch]
+  );
+
+  const setLineThickness = useCallback(
+    (lineThickness: LineThickness) => {
+      dispatch({ type: 'SET_LINE_THICKNESS', payload: { lineThickness } });
+    },
+    [dispatch]
+  );
+
+  const setCustomColors = useCallback(
+    (customColors: CustomColors | undefined) => {
+      dispatch({ type: 'SET_CUSTOM_COLORS', payload: { customColors } });
+    },
+    [dispatch]
+  );
+
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
   }, [dispatch]);
@@ -133,6 +171,10 @@ export function useRoadmap() {
     orientation: state.orientation,
     fontSize: state.fontSize,
     entryShape: state.entryShape,
+    fontFamily: state.fontFamily,
+    lineStyle: state.lineStyle,
+    lineThickness: state.lineThickness,
+    customColors: state.customColors,
     endpoints: state.endpoints,
     lastModified: state.lastModified,
 
@@ -150,6 +192,10 @@ export function useRoadmap() {
     setOrientation,
     setFontSize,
     setEntryShape,
+    setFontFamily,
+    setLineStyle,
+    setLineThickness,
+    setCustomColors,
     setEndpoints,
 
     // Undo/Redo

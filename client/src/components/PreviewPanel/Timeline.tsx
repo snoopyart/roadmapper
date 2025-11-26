@@ -1,9 +1,64 @@
 import { useRef, useEffect, useState } from 'react';
-import type { TimelineEntry, Orientation, FontSize, EntryShape, Endpoints } from '../../types';
+import type { TimelineEntry, Orientation, FontSize, EntryShape, Endpoints, LineStyle, LineThickness, EndpointStyle } from '../../types';
 import { TimelineItem } from './TimelineItem';
 
 const DEFAULT_START_COLOR = '#06b6d4'; // teal
 const DEFAULT_END_COLOR = '#8b5cf6'; // purple
+
+// Endpoint marker component
+function EndpointMarker({ style, color, direction, isHorizontal }: {
+  style: EndpointStyle;
+  color: string;
+  direction: 'start' | 'end';
+  isHorizontal: boolean;
+}) {
+  if (style === 'none') return null;
+
+  const size = 16;
+
+  // For arrows, we need to rotate based on direction and orientation
+  const getArrowRotation = () => {
+    if (isHorizontal) {
+      return direction === 'start' ? 0 : 180; // left-pointing for start, right-pointing for end
+    }
+    return direction === 'start' ? 90 : 270; // up-pointing for start, down-pointing for end
+  };
+
+  switch (style) {
+    case 'dot':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" className="flex-shrink-0">
+          <circle cx="8" cy="8" r="6" fill={color} />
+        </svg>
+      );
+    case 'arrow':
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 16 16"
+          className="flex-shrink-0"
+          style={{ transform: `rotate(${getArrowRotation()}deg)` }}
+        >
+          <polygon points="2,8 14,3 14,13" fill={color} />
+        </svg>
+      );
+    case 'diamond':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" className="flex-shrink-0">
+          <polygon points="8,1 15,8 8,15 1,8" fill={color} />
+        </svg>
+      );
+    case 'square':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" className="flex-shrink-0">
+          <rect x="2" y="2" width="12" height="12" fill={color} />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
 
 interface TimelineProps {
   entries: TimelineEntry[];
@@ -11,9 +66,17 @@ interface TimelineProps {
   fontSize: FontSize;
   entryShape: EntryShape;
   endpoints?: Endpoints;
+  lineStyle?: LineStyle;
+  lineThickness?: LineThickness;
 }
 
-export function Timeline({ entries, orientation, fontSize, entryShape, endpoints }: TimelineProps) {
+const lineThicknessValues: Record<LineThickness, string> = {
+  thin: '2px',
+  medium: '4px',
+  thick: '6px',
+};
+
+export function Timeline({ entries, orientation, fontSize, entryShape, endpoints, lineStyle = 'solid', lineThickness = 'medium' }: TimelineProps) {
   const isHorizontal = orientation === 'horizontal';
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -23,6 +86,9 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
   const hasEndPoint = endpoints?.end && endpoints.end.trim() !== '';
   const startColor = endpoints?.startColor || DEFAULT_START_COLOR;
   const endColor = endpoints?.endColor || DEFAULT_END_COLOR;
+  const startStyle: EndpointStyle = endpoints?.startStyle || 'dot';
+  const endStyle: EndpointStyle = endpoints?.endStyle || 'arrow';
+  const thickness = lineThicknessValues[lineThickness];
 
   // Auto-scale to fit container without horizontal scroll
   useEffect(() => {
@@ -66,12 +132,22 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
         {/* Timeline line */}
         <div
           className={`
-            absolute bg-[var(--theme-primary)] opacity-30
+            absolute opacity-30
             ${isHorizontal
-              ? 'left-0 right-0 top-1/2 h-1 -translate-y-1/2'
-              : 'top-0 bottom-0 left-8 w-1'
+              ? 'left-0 right-0 top-1/2 -translate-y-1/2'
+              : 'top-0 bottom-0 left-8'
             }
           `}
+          style={{
+            backgroundColor: lineStyle === 'solid' ? 'var(--theme-primary)' : 'transparent',
+            backgroundImage: lineStyle === 'dashed'
+              ? `repeating-linear-gradient(${isHorizontal ? '90deg' : '180deg'}, var(--theme-primary), var(--theme-primary) 10px, transparent 10px, transparent 20px)`
+              : lineStyle === 'dotted'
+              ? `repeating-linear-gradient(${isHorizontal ? '90deg' : '180deg'}, var(--theme-primary), var(--theme-primary) 4px, transparent 4px, transparent 12px)`
+              : undefined,
+            height: isHorizontal ? thickness : undefined,
+            width: isHorizontal ? undefined : thickness,
+          }}
         />
 
         {/* Timeline items */}
@@ -87,16 +163,15 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
           {/* Start Point */}
           {hasStartPoint && (
             <div className={`relative flex-shrink-0 ${isHorizontal ? 'self-center -mt-14 z-10' : ''}`}>
-              {/* Only show dot in vertical mode */}
-              {!isHorizontal && (
-                <div
-                  className="absolute w-4 h-4 rounded-full border-2 border-[var(--theme-surface)] z-10 -left-8 top-1/2 -translate-y-1/2"
-                  style={{ backgroundColor: startColor }}
-                />
+              {/* Marker in vertical mode */}
+              {!isHorizontal && startStyle !== 'none' && (
+                <div className="absolute z-10 -left-9 top-1/2 -translate-y-1/2">
+                  <EndpointMarker style={startStyle} color={startColor} direction="start" isHorizontal={isHorizontal} />
+                </div>
               )}
               <div
                 className={`
-                  px-3 py-2 rounded-lg border text-sm font-medium
+                  flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium
                   ${isHorizontal ? 'text-center min-w-[80px] text-white' : 'text-[var(--theme-text)]'}
                 `}
                 style={
@@ -105,7 +180,11 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
                     : { backgroundColor: `${startColor}15`, borderColor: `${startColor}50` }
                 }
               >
-                {endpoints?.start}
+                {/* Marker in horizontal mode - before text */}
+                {isHorizontal && startStyle !== 'none' && (
+                  <EndpointMarker style={startStyle} color="white" direction="start" isHorizontal={isHorizontal} />
+                )}
+                <span>{endpoints?.start}</span>
               </div>
             </div>
           )}
@@ -148,16 +227,15 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
           {/* End Point */}
           {hasEndPoint && (
             <div className={`relative flex-shrink-0 ${isHorizontal ? 'self-center -mt-14 z-10' : ''}`}>
-              {/* Only show dot in vertical mode */}
-              {!isHorizontal && (
-                <div
-                  className="absolute w-4 h-4 rounded-full border-2 border-[var(--theme-surface)] z-10 -left-8 top-1/2 -translate-y-1/2"
-                  style={{ backgroundColor: endColor }}
-                />
+              {/* Marker in vertical mode */}
+              {!isHorizontal && endStyle !== 'none' && (
+                <div className="absolute z-10 -left-9 top-1/2 -translate-y-1/2">
+                  <EndpointMarker style={endStyle} color={endColor} direction="end" isHorizontal={isHorizontal} />
+                </div>
               )}
               <div
                 className={`
-                  px-3 py-2 rounded-lg border text-sm font-medium
+                  flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium
                   ${isHorizontal ? 'text-center min-w-[80px] text-white' : 'text-[var(--theme-text)]'}
                 `}
                 style={
@@ -166,7 +244,11 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
                     : { backgroundColor: `${endColor}15`, borderColor: `${endColor}50` }
                 }
               >
-                {endpoints?.end}
+                <span>{endpoints?.end}</span>
+                {/* Marker in horizontal mode - after text */}
+                {isHorizontal && endStyle !== 'none' && (
+                  <EndpointMarker style={endStyle} color="white" direction="end" isHorizontal={isHorizontal} />
+                )}
               </div>
             </div>
           )}

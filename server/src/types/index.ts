@@ -7,8 +7,33 @@ export interface TimelineEntry {
 
 export type Orientation = 'horizontal' | 'vertical';
 export type FontSize = 'small' | 'medium' | 'large';
-export type EntryShape = 'rounded' | 'square' | 'minimal';
+export type EntryShape = 'rounded' | 'square' | 'minimal' | 'ghost';
+export type FontFamily = 'system' | 'serif' | 'mono' | 'inter' | 'playfair' | 'roboto' | 'opensans' | 'lato' | 'poppins' | 'montserrat' | 'raleway' | 'merriweather' | 'sourcecode' | 'nunito' | 'oswald';
+export type LineStyle = 'solid' | 'dashed' | 'dotted';
+export type LineThickness = 'thin' | 'medium' | 'thick';
 export type Permission = 'view' | 'edit';
+
+export interface CustomColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  border: string;
+}
+
+export type EndpointStyle = 'none' | 'dot' | 'arrow' | 'diamond' | 'square';
+
+export interface Endpoints {
+  start: string;
+  end: string;
+  startColor?: string;
+  endColor?: string;
+  startStyle?: EndpointStyle;
+  endStyle?: EndpointStyle;
+}
 
 export interface User {
   id: string;
@@ -27,6 +52,11 @@ export interface Roadmap {
   orientation: Orientation;
   fontSize: FontSize;
   entryShape: EntryShape;
+  fontFamily?: FontFamily;
+  lineStyle?: LineStyle;
+  lineThickness?: LineThickness;
+  customColors?: CustomColors;
+  endpoints?: Endpoints;
   isPublic: boolean;
   shareToken: string | null;
   createdAt: Date;
@@ -56,6 +86,11 @@ export interface CreateRoadmapRequest {
   orientation?: Orientation;
   fontSize?: FontSize;
   entryShape?: EntryShape;
+  fontFamily?: FontFamily;
+  lineStyle?: LineStyle;
+  lineThickness?: LineThickness;
+  customColors?: CustomColors;
+  endpoints?: Endpoints;
 }
 
 export interface UpdateRoadmapRequest {
@@ -65,6 +100,11 @@ export interface UpdateRoadmapRequest {
   orientation?: Orientation;
   fontSize?: FontSize;
   entryShape?: EntryShape;
+  fontFamily?: FontFamily;
+  lineStyle?: LineStyle;
+  lineThickness?: LineThickness;
+  customColors?: CustomColors;
+  endpoints?: Endpoints;
 }
 
 export interface RegisterRequest {

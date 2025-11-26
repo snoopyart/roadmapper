@@ -1,4 +1,42 @@
-import type { Theme } from '../types';
+import type { Theme, CustomColors, FontFamily } from '../types';
+
+// Font family CSS values
+export const fontFamilies: Record<FontFamily, string> = {
+  system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  serif: 'Georgia, "Times New Roman", Times, serif',
+  mono: '"SF Mono", Menlo, Monaco, "Courier New", monospace',
+  inter: '"Inter", system-ui, sans-serif',
+  playfair: '"Playfair Display", Georgia, serif',
+  roboto: '"Roboto", system-ui, sans-serif',
+  opensans: '"Open Sans", system-ui, sans-serif',
+  lato: '"Lato", system-ui, sans-serif',
+  poppins: '"Poppins", system-ui, sans-serif',
+  montserrat: '"Montserrat", system-ui, sans-serif',
+  raleway: '"Raleway", system-ui, sans-serif',
+  merriweather: '"Merriweather", Georgia, serif',
+  sourcecode: '"Source Code Pro", "SF Mono", monospace',
+  nunito: '"Nunito", system-ui, sans-serif',
+  oswald: '"Oswald", system-ui, sans-serif',
+};
+
+// Font family display names
+export const fontFamilyNames: Record<FontFamily, string> = {
+  system: 'System Default',
+  serif: 'Serif',
+  mono: 'Monospace',
+  inter: 'Inter',
+  playfair: 'Playfair Display',
+  roboto: 'Roboto',
+  opensans: 'Open Sans',
+  lato: 'Lato',
+  poppins: 'Poppins',
+  montserrat: 'Montserrat',
+  raleway: 'Raleway',
+  merriweather: 'Merriweather',
+  sourcecode: 'Source Code Pro',
+  nunito: 'Nunito',
+  oswald: 'Oswald',
+};
 
 export const themes: Theme[] = [
   {
@@ -91,14 +129,20 @@ export const getThemeById = (id: string): Theme => {
   return themes.find((t) => t.id === id) || themes[0];
 };
 
-export const applyTheme = (theme: Theme): void => {
+export const applyTheme = (theme: Theme, customColors?: CustomColors): void => {
   const root = document.documentElement;
-  root.style.setProperty('--theme-primary', theme.colors.primary);
-  root.style.setProperty('--theme-secondary', theme.colors.secondary);
-  root.style.setProperty('--theme-accent', theme.colors.accent);
-  root.style.setProperty('--theme-background', theme.colors.background);
-  root.style.setProperty('--theme-surface', theme.colors.surface);
-  root.style.setProperty('--theme-text', theme.colors.text);
-  root.style.setProperty('--theme-text-muted', theme.colors.textMuted);
-  root.style.setProperty('--theme-border', theme.colors.border);
+  const colors = customColors || theme.colors;
+  root.style.setProperty('--theme-primary', colors.primary);
+  root.style.setProperty('--theme-secondary', colors.secondary);
+  root.style.setProperty('--theme-accent', colors.accent);
+  root.style.setProperty('--theme-background', colors.background);
+  root.style.setProperty('--theme-surface', colors.surface);
+  root.style.setProperty('--theme-text', colors.text);
+  root.style.setProperty('--theme-text-muted', colors.textMuted);
+  root.style.setProperty('--theme-border', colors.border);
+};
+
+export const applyFontFamily = (fontFamily: FontFamily): void => {
+  const root = document.documentElement;
+  root.style.setProperty('--theme-font-family', fontFamilies[fontFamily]);
 };

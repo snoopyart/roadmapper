@@ -53,6 +53,10 @@ export function ExportButton() {
       orientation: roadmapState.orientation,
       fontSize: roadmapState.fontSize,
       entryShape: roadmapState.entryShape,
+      fontFamily: roadmapState.fontFamily,
+      lineStyle: roadmapState.lineStyle,
+      lineThickness: roadmapState.lineThickness,
+      customColors: roadmapState.customColors,
       endpoints: roadmapState.endpoints,
       lastModified: Date.now(),
     });

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ThemeSelector } from './ThemeSelector';
 import { LayoutOptions } from './LayoutOptions';
+import { CustomColors } from './CustomColors';
 
 export function StylePanel() {
   const [isOpen, setIsOpen] = useState(true);
@@ -33,6 +34,7 @@ export function StylePanel() {
       {isOpen && (
         <div className="px-4 pb-4 space-y-4">
           <ThemeSelector />
+          <CustomColors />
           <div className="border-t border-[var(--theme-border)] pt-4">
             <LayoutOptions />
           </div>

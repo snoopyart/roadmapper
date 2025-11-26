@@ -1,8 +1,49 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRoadmap } from '../../hooks/useRoadmap';
+import type { EndpointStyle } from '../../types';
 
 const DEFAULT_START_COLOR = '#06b6d4'; // teal (theme-secondary)
 const DEFAULT_END_COLOR = '#8b5cf6'; // purple (theme-accent)
+
+const endpointStyles: { value: EndpointStyle; label: string; icon: React.ReactNode }[] = [
+  { value: 'none', label: 'None', icon: <span className="text-gray-400">—</span> },
+  {
+    value: 'dot',
+    label: 'Dot',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <circle cx="8" cy="8" r="5" />
+      </svg>
+    )
+  },
+  {
+    value: 'arrow',
+    label: 'Arrow',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <polygon points="2,8 14,2 14,14" />
+      </svg>
+    )
+  },
+  {
+    value: 'diamond',
+    label: 'Diamond',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <polygon points="8,1 15,8 8,15 1,8" />
+      </svg>
+    )
+  },
+  {
+    value: 'square',
+    label: 'Square',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="2" y="2" width="12" height="12" />
+      </svg>
+    )
+  },
+];
 
 interface EndpointsModalProps {
   onClose: () => void;
@@ -14,6 +55,8 @@ export function EndpointsModal({ onClose }: EndpointsModalProps) {
   const [end, setEnd] = useState(endpoints?.end || '');
   const [startColor, setStartColor] = useState(endpoints?.startColor || DEFAULT_START_COLOR);
   const [endColor, setEndColor] = useState(endpoints?.endColor || DEFAULT_END_COLOR);
+  const [startStyle, setStartStyle] = useState<EndpointStyle>(endpoints?.startStyle || 'dot');
+  const [endStyle, setEndStyle] = useState<EndpointStyle>(endpoints?.endStyle || 'arrow');
   const startInputRef = useRef<HTMLInputElement>(null);
 
   // Focus the first input on mount
@@ -45,6 +88,8 @@ export function EndpointsModal({ onClose }: EndpointsModalProps) {
       end: end.trim(),
       startColor,
       endColor,
+      startStyle,
+      endStyle,
     });
     onClose();
   };
@@ -54,7 +99,9 @@ export function EndpointsModal({ onClose }: EndpointsModalProps) {
     setEnd('');
     setStartColor(DEFAULT_START_COLOR);
     setEndColor(DEFAULT_END_COLOR);
-    setEndpoints({ start: '', end: '', startColor: DEFAULT_START_COLOR, endColor: DEFAULT_END_COLOR });
+    setStartStyle('dot');
+    setEndStyle('arrow');
+    setEndpoints({ start: '', end: '', startColor: DEFAULT_START_COLOR, endColor: DEFAULT_END_COLOR, startStyle: 'dot', endStyle: 'arrow' });
   };
 
   return (
@@ -112,6 +159,24 @@ export function EndpointsModal({ onClose }: EndpointsModalProps) {
                 title="Start point color"
               />
             </div>
+            <div className="flex gap-1 mt-2">
+              <span className="text-xs text-[var(--theme-text-muted)] mr-1 self-center">Marker:</span>
+              {endpointStyles.map((style) => (
+                <button
+                  key={style.value}
+                  type="button"
+                  onClick={() => setStartStyle(style.value)}
+                  className={`p-1.5 rounded border transition-colors ${
+                    startStyle === style.value
+                      ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]'
+                      : 'border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]'
+                  }`}
+                  title={style.label}
+                >
+                  {style.icon}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -134,6 +199,24 @@ export function EndpointsModal({ onClose }: EndpointsModalProps) {
                 className="w-10 h-10 rounded-md border border-[var(--theme-border)] cursor-pointer p-1"
                 title="End point color"
               />
+            </div>
+            <div className="flex gap-1 mt-2">
+              <span className="text-xs text-[var(--theme-text-muted)] mr-1 self-center">Marker:</span>
+              {endpointStyles.map((style) => (
+                <button
+                  key={style.value}
+                  type="button"
+                  onClick={() => setEndStyle(style.value)}
+                  className={`p-1.5 rounded border transition-colors ${
+                    endStyle === style.value
+                      ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 text-[var(--theme-primary)]'
+                      : 'border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:border-[var(--theme-primary)]'
+                  }`}
+                  title={style.label}
+                >
+                  {style.icon}
+                </button>
+              ))}
             </div>
           </div>
         </div>

@@ -173,6 +173,19 @@ export interface Endpoints {
   end: string;
   startColor?: string;
   endColor?: string;
+  startStyle?: 'none' | 'dot' | 'arrow' | 'diamond' | 'square';
+  endStyle?: 'none' | 'dot' | 'arrow' | 'diamond' | 'square';
+}
+
+export interface CustomColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  border: string;
 }
 
 export interface RoadmapWithAccess {
@@ -183,7 +196,11 @@ export interface RoadmapWithAccess {
   themeId: string;
   orientation: 'horizontal' | 'vertical';
   fontSize: 'small' | 'medium' | 'large';
-  entryShape: 'rounded' | 'square' | 'minimal';
+  entryShape: 'rounded' | 'square' | 'minimal' | 'ghost';
+  fontFamily?: 'system' | 'serif' | 'mono' | 'inter' | 'playfair' | 'roboto' | 'opensans' | 'lato' | 'poppins' | 'montserrat' | 'raleway' | 'merriweather' | 'sourcecode' | 'nunito' | 'oswald';
+  lineStyle?: 'solid' | 'dashed' | 'dotted';
+  lineThickness?: 'thin' | 'medium' | 'thick';
+  customColors?: CustomColors;
   endpoints?: Endpoints;
   isPublic: boolean;
   shareToken: string | null;
@@ -208,7 +225,11 @@ export interface CreateRoadmapRequest {
   themeId?: string;
   orientation?: 'horizontal' | 'vertical';
   fontSize?: 'small' | 'medium' | 'large';
-  entryShape?: 'rounded' | 'square' | 'minimal';
+  entryShape?: 'rounded' | 'square' | 'minimal' | 'ghost';
+  fontFamily?: 'system' | 'serif' | 'mono' | 'inter' | 'playfair' | 'roboto' | 'opensans' | 'lato' | 'poppins' | 'montserrat' | 'raleway' | 'merriweather' | 'sourcecode' | 'nunito' | 'oswald';
+  lineStyle?: 'solid' | 'dashed' | 'dotted';
+  lineThickness?: 'thin' | 'medium' | 'thick';
+  customColors?: CustomColors;
   endpoints?: Endpoints;
 }
 

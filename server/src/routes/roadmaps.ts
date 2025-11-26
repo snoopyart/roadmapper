@@ -14,13 +14,38 @@ const timelineEntrySchema = z.object({
   date: z.string().optional(),
 });
 
+const customColorsSchema = z.object({
+  primary: z.string(),
+  secondary: z.string(),
+  accent: z.string(),
+  background: z.string(),
+  surface: z.string(),
+  text: z.string(),
+  textMuted: z.string(),
+  border: z.string(),
+}).nullable().optional();
+
+const endpointsSchema = z.object({
+  start: z.string(),
+  end: z.string(),
+  startColor: z.string().optional(),
+  endColor: z.string().optional(),
+  startStyle: z.enum(['none', 'dot', 'arrow', 'diamond', 'square']).optional(),
+  endStyle: z.enum(['none', 'dot', 'arrow', 'diamond', 'square']).optional(),
+}).nullable().optional();
+
 const createRoadmapSchema = z.object({
   title: z.string().optional(),
   entries: z.array(timelineEntrySchema).optional(),
   themeId: z.string().optional(),
   orientation: z.enum(['horizontal', 'vertical']).optional(),
   fontSize: z.enum(['small', 'medium', 'large']).optional(),
-  entryShape: z.enum(['rounded', 'square', 'minimal']).optional(),
+  entryShape: z.enum(['rounded', 'square', 'minimal', 'ghost']).optional(),
+  fontFamily: z.enum(['system', 'serif', 'mono', 'inter', 'playfair', 'roboto', 'opensans', 'lato', 'poppins', 'montserrat', 'raleway', 'merriweather', 'sourcecode', 'nunito', 'oswald']).optional(),
+  lineStyle: z.enum(['solid', 'dashed', 'dotted']).optional(),
+  lineThickness: z.enum(['thin', 'medium', 'thick']).optional(),
+  customColors: customColorsSchema,
+  endpoints: endpointsSchema,
 });
 
 const updateRoadmapSchema = createRoadmapSchema;
@@ -34,6 +59,11 @@ interface DbRoadmap {
   orientation: string;
   font_size: string;
   entry_shape: string;
+  font_family: string | null;
+  line_style: string | null;
+  line_thickness: string | null;
+  custom_colors: Record<string, string> | null;
+  endpoints: Record<string, string> | null;
   is_public: boolean;
   share_token: string | null;
   created_at: Date;
@@ -52,7 +82,12 @@ function mapDbToRoadmap(row: DbRoadmap): RoadmapWithAccess {
     themeId: row.theme_id,
     orientation: row.orientation as 'horizontal' | 'vertical',
     fontSize: row.font_size as 'small' | 'medium' | 'large',
-    entryShape: row.entry_shape as 'rounded' | 'square' | 'minimal',
+    entryShape: row.entry_shape as 'rounded' | 'square' | 'minimal' | 'ghost',
+    fontFamily: row.font_family as 'system' | 'serif' | 'mono' | 'inter' | 'playfair' | 'roboto' | 'opensans' | 'lato' | 'poppins' | 'montserrat' | 'raleway' | 'merriweather' | 'sourcecode' | 'nunito' | 'oswald' | undefined,
+    lineStyle: row.line_style as 'solid' | 'dashed' | 'dotted' | undefined,
+    lineThickness: row.line_thickness as 'thin' | 'medium' | 'thick' | undefined,
+    customColors: row.custom_colors as RoadmapWithAccess['customColors'],
+    endpoints: row.endpoints as RoadmapWithAccess['endpoints'],
     isPublic: row.is_public,
     shareToken: row.share_token,
     createdAt: row.created_at,
@@ -96,8 +131,8 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
     const data = createRoadmapSchema.parse(req.body);
 
     const result = await query<DbRoadmap>(
-      `INSERT INTO roadmaps (owner_id, title, entries, theme_id, orientation, font_size, entry_shape)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO roadmaps (owner_id, title, entries, theme_id, orientation, font_size, entry_shape, font_family, line_style, line_thickness, custom_colors, endpoints)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         req.user!.userId,
@@ -107,6 +142,11 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
         data.orientation || 'horizontal',
         data.fontSize || 'medium',
         data.entryShape || 'rounded',
+        data.fontFamily || 'system',
+        data.lineStyle || 'solid',
+        data.lineThickness || 'medium',
+        data.customColors ? JSON.stringify(data.customColors) : null,
+        data.endpoints ? JSON.stringify(data.endpoints) : null,
       ]
     );
 
@@ -246,7 +286,12 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
          theme_id = COALESCE($4, theme_id),
          orientation = COALESCE($5, orientation),
          font_size = COALESCE($6, font_size),
-         entry_shape = COALESCE($7, entry_shape)
+         entry_shape = COALESCE($7, entry_shape),
+         font_family = COALESCE($8, font_family),
+         line_style = COALESCE($9, line_style),
+         line_thickness = COALESCE($10, line_thickness),
+         custom_colors = COALESCE($11, custom_colors),
+         endpoints = COALESCE($12, endpoints)
        WHERE id = $1
        RETURNING *`,
       [
@@ -257,6 +302,11 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
         data.orientation,
         data.fontSize,
         data.entryShape,
+        data.fontFamily,
+        data.lineStyle,
+        data.lineThickness,
+        data.customColors ? JSON.stringify(data.customColors) : null,
+        data.endpoints ? JSON.stringify(data.endpoints) : null,
       ]
     );
 
@@ -313,8 +363,8 @@ router.post('/:id/duplicate', authMiddleware, async (req: Request, res: Response
 
     // Create a copy
     const result = await query<DbRoadmap>(
-      `INSERT INTO roadmaps (owner_id, title, entries, theme_id, orientation, font_size, entry_shape)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO roadmaps (owner_id, title, entries, theme_id, orientation, font_size, entry_shape, font_family, line_style, line_thickness, custom_colors, endpoints)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         req.user!.userId,
@@ -324,6 +374,11 @@ router.post('/:id/duplicate', authMiddleware, async (req: Request, res: Response
         original.orientation,
         original.font_size,
         original.entry_shape,
+        original.font_family,
+        original.line_style,
+        original.line_thickness,
+        original.custom_colors ? JSON.stringify(original.custom_colors) : null,
+        original.endpoints ? JSON.stringify(original.endpoints) : null,
       ]
     );
 

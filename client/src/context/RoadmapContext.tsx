@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useState, useRef, type ReactNode } from 'react';
 import type { RoadmapState, RoadmapAction, TimelineEntry, RoadmapConfig, SavedRoadmapsState } from '../types';
-import { applyTheme, getThemeById } from '../themes';
+import { applyTheme, applyFontFamily, getThemeById } from '../themes';
 import { getSharedDataFromUrl, decodeRoadmap, clearShareHash } from '../utils/shareUtils';
 import { useAuth } from './AuthContext';
 import { api, type RoadmapWithAccess } from '../api/client';
@@ -33,6 +33,10 @@ const createDefaultRoadmap = (): RoadmapState => ({
   orientation: 'horizontal',
   fontSize: 'medium',
   entryShape: 'rounded',
+  fontFamily: 'system',
+  lineStyle: 'solid',
+  lineThickness: 'medium',
+  customColors: undefined,
   endpoints: { start: '', end: '' },
   lastModified: Date.now(),
 });
@@ -47,6 +51,10 @@ function apiToLocal(roadmap: RoadmapWithAccess): RoadmapConfig {
     orientation: roadmap.orientation,
     fontSize: roadmap.fontSize,
     entryShape: roadmap.entryShape,
+    fontFamily: roadmap.fontFamily || 'system',
+    lineStyle: roadmap.lineStyle || 'solid',
+    lineThickness: roadmap.lineThickness || 'medium',
+    customColors: roadmap.customColors,
     endpoints: roadmap.endpoints || { start: '', end: '' },
     lastModified: new Date(roadmap.updatedAt).getTime(),
   };
@@ -126,6 +134,30 @@ function roadmapReducer(state: RoadmapState, action: RoadmapAction): RoadmapStat
       return updateTimestamp({
         ...state,
         endpoints: action.payload.endpoints,
+      });
+
+    case 'SET_FONT_FAMILY':
+      return updateTimestamp({
+        ...state,
+        fontFamily: action.payload.fontFamily,
+      });
+
+    case 'SET_LINE_STYLE':
+      return updateTimestamp({
+        ...state,
+        lineStyle: action.payload.lineStyle,
+      });
+
+    case 'SET_LINE_THICKNESS':
+      return updateTimestamp({
+        ...state,
+        lineThickness: action.payload.lineThickness,
+      });
+
+    case 'SET_CUSTOM_COLORS':
+      return updateTimestamp({
+        ...state,
+        customColors: action.payload.customColors,
       });
 
     case 'LOAD_STATE':
@@ -254,6 +286,10 @@ function loadSavedRoadmaps(): SavedRoadmapsState {
           orientation: oldParsed.orientation || 'horizontal',
           fontSize: oldParsed.fontSize || 'medium',
           entryShape: oldParsed.entryShape || 'rounded',
+          fontFamily: oldParsed.fontFamily || 'system',
+          lineStyle: oldParsed.lineStyle || 'solid',
+          lineThickness: oldParsed.lineThickness || 'medium',
+          customColors: oldParsed.customColors,
           endpoints: oldParsed.endpoints || { start: '', end: '' },
           lastModified: Date.now(),
         };
@@ -472,6 +508,10 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
       orientation: state.orientation,
       fontSize: state.fontSize,
       entryShape: state.entryShape,
+      fontFamily: state.fontFamily,
+      lineStyle: state.lineStyle,
+      lineThickness: state.lineThickness,
+      customColors: state.customColors,
       endpoints: state.endpoints,
     });
 
@@ -492,6 +532,10 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         orientation: state.orientation,
         fontSize: state.fontSize,
         entryShape: state.entryShape,
+        fontFamily: state.fontFamily,
+        lineStyle: state.lineStyle,
+        lineThickness: state.lineThickness,
+        customColors: state.customColors,
         endpoints: state.endpoints,
       })
         .then(() => {
@@ -512,11 +556,15 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     };
   }, [state, isAuthenticated, isLoading, apiInitialized]);
 
-  // Apply theme on mount and when themeId changes
+  // Apply theme, custom colors, and font family on mount and when they change
   useEffect(() => {
     const theme = getThemeById(state.themeId);
-    applyTheme(theme);
-  }, [state.themeId]);
+    applyTheme(theme, state.customColors);
+  }, [state.themeId, state.customColors]);
+
+  useEffect(() => {
+    applyFontFamily(state.fontFamily);
+  }, [state.fontFamily]);
 
   const switchRoadmap = useCallback((id: string) => {
     const roadmap = savedRoadmaps.find(r => r.id === id);
@@ -635,6 +683,11 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
           orientation: data.orientation,
           fontSize: data.fontSize,
           entryShape: data.entryShape,
+          fontFamily: data.fontFamily,
+          lineStyle: data.lineStyle,
+          lineThickness: data.lineThickness,
+          customColors: data.customColors,
+          endpoints: data.endpoints,
         });
         const newRoadmap = apiToLocal(roadmap);
         setSavedRoadmaps({ type: 'ADD', payload: newRoadmap });
@@ -653,6 +706,10 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         orientation: data.orientation || 'horizontal',
         fontSize: data.fontSize || 'medium',
         entryShape: data.entryShape || 'rounded',
+        fontFamily: data.fontFamily || 'system',
+        lineStyle: data.lineStyle || 'solid',
+        lineThickness: data.lineThickness || 'medium',
+        customColors: data.customColors,
         endpoints: data.endpoints || { start: '', end: '' },
         lastModified: Date.now(),
       };

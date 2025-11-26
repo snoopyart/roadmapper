@@ -3,7 +3,7 @@ import { Timeline } from './Timeline';
 import { ExportButton } from './ExportButton';
 
 export function PreviewPanel() {
-  const { title, entries, orientation, fontSize, entryShape, endpoints } = useRoadmap();
+  const { title, entries, orientation, fontSize, entryShape, endpoints, lineStyle, lineThickness } = useRoadmap();
 
   return (
     <div className="h-full flex flex-col bg-[var(--theme-background)]">
@@ -34,6 +34,8 @@ export function PreviewPanel() {
             fontSize={fontSize}
             entryShape={entryShape}
             endpoints={endpoints}
+            lineStyle={lineStyle}
+            lineThickness={lineThickness}
           />
         </div>
       </div>

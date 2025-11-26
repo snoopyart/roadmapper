@@ -18,6 +18,7 @@ const shapeClasses: Record<EntryShape, string> = {
   rounded: 'rounded-xl',
   square: 'rounded-none',
   minimal: 'rounded-md border-l-4 border-t-0 border-r-0 border-b-0',
+  ghost: 'rounded-md',
 };
 
 export const TimelineItem = memo(function TimelineItem({ entry, shape, fontSize, isHorizontal }: TimelineItemProps) {
@@ -26,11 +27,17 @@ export const TimelineItem = memo(function TimelineItem({ entry, shape, fontSize,
   const hasDescription = entry.description && entry.description.trim().length > 0;
   const hasDate = entry.date && entry.date.trim().length > 0;
 
+  const isGhost = shape === 'ghost';
+
   return (
     <div
       className={`
-        bg-[var(--theme-surface)] border border-[var(--theme-border)] p-4 shadow-sm
+        p-4
         ${shapeClass}
+        ${isGhost
+          ? 'bg-[var(--theme-surface)] border-none shadow-none'
+          : 'bg-[var(--theme-surface)] border border-[var(--theme-border)] shadow-sm'
+        }
         ${shape === 'minimal' ? 'border-l-[var(--theme-primary)]' : ''}
         ${isHorizontal ? 'min-w-[150px] max-w-[200px] flex-shrink-0' : 'w-full'}
       `}

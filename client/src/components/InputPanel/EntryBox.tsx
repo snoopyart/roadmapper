@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { TimelineEntry } from '../../types';
 import { DragHandle } from './DragHandle';
+import { DateInput } from './DateInput';
 
 interface EntryBoxProps {
   entry: TimelineEntry;
@@ -125,16 +126,13 @@ export const EntryBox = memo(function EntryBox({
             >
               Date
             </label>
-            <input
+            <DateInput
               id={`date-${entry.id}`}
-              type="text"
               value={entry.date || ''}
-              onChange={(e) => onUpdate(entry.id, { date: e.target.value })}
-              placeholder="e.g., 2025, March 2025, or 15 March 2025"
-              className="w-full px-3 py-2 border border-[var(--theme-border)] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
+              onChange={(date) => onUpdate(entry.id, { date })}
             />
             <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
-              Supports: Year (2025), Month/Year (March 2025), or full date (15 March 2025)
+              Type or use picker for Year, Month/Year, or full date
             </p>
           </div>
         </div>

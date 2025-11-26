@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ThemeSelector } from '../StylePanel/ThemeSelector';
 import { LayoutOptions } from '../StylePanel/LayoutOptions';
+import { CustomColors } from '../StylePanel/CustomColors';
 
 interface StyleModalProps {
   onClose: () => void;
@@ -62,6 +63,7 @@ export function StyleModal({ onClose }: StyleModalProps) {
           <div>
             <h3 className="text-sm font-medium text-[var(--theme-text)] mb-3">Theme</h3>
             <ThemeSelector />
+            <CustomColors />
           </div>
 
           <div className="border-t border-[var(--theme-border)] pt-6">
