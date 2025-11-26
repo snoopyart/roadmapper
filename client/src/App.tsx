@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { InputPanel } from './components/InputPanel';
 import { PreviewPanel } from './components/PreviewPanel';
-import { StylePanel } from './components/StylePanel';
+import { StyleModal } from './components/StyleModal';
+import { EndpointsModal } from './components/EndpointsModal';
 import { useRoadmap } from './hooks/useRoadmap';
 import { useAuth } from './context/AuthContext';
 import { AuthModal } from './components/Auth';
+import { ShareModal } from './components/ShareModal';
 
 function App() {
   const {
@@ -18,6 +20,9 @@ function App() {
     createNewRoadmap,
     duplicateRoadmap,
     deleteRoadmap,
+    viewMode,
+    exitViewMode,
+    title,
   } = useRoadmap();
 
   const { user, isLoading: authLoading, logout } = useAuth();
@@ -26,6 +31,9 @@ function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showStyleModal, setShowStyleModal] = useState(false);
+  const [showEndpointsModal, setShowEndpointsModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -54,8 +62,41 @@ function App() {
     });
   };
 
+  // Show simplified view for shared/public roadmaps
+  if (viewMode === 'view') {
+    return (
+      <div className="h-screen flex flex-col overflow-hidden">
+        {/* View mode header */}
+        <header className="bg-[var(--theme-surface)] border-b border-[var(--theme-border)] px-6 py-4 no-print" role="banner">
+          <div className="max-w-[1800px] mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-xl font-bold text-[var(--theme-text)]">{title}</h1>
+                <p className="text-sm text-[var(--theme-text-muted)]">
+                  Shared roadmap (read-only)
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={exitViewMode}
+              className="px-4 py-2 text-sm font-medium text-white bg-[var(--theme-primary)] rounded-md hover:opacity-90 transition-opacity"
+            >
+              Create Your Own
+            </button>
+          </div>
+        </header>
+
+        {/* Preview only - no editing */}
+        <main className="flex-1 overflow-auto">
+          <PreviewPanel />
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Skip link for accessibility */}
       <a
         href="#roadmap-preview"
@@ -107,6 +148,54 @@ function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Style button */}
+            <button
+              type="button"
+              onClick={() => setShowStyleModal(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--theme-text)] hover:bg-gray-100 rounded-md transition-colors"
+              title="Styling options"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              Style
+            </button>
+
+            {/* Endpoints button */}
+            <button
+              type="button"
+              onClick={() => setShowEndpointsModal(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--theme-text)] hover:bg-gray-100 rounded-md transition-colors"
+              title="Timeline endpoints"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="5" cy="12" r="3" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+                <circle cx="19" cy="12" r="3" />
+              </svg>
+              Endpoints
+            </button>
+
+            {/* Share button - only show when logged in */}
+            {user && (
+              <button
+                type="button"
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--theme-text)] hover:bg-gray-100 rounded-md transition-colors"
+                title="Share roadmap"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                Share
+              </button>
+            )}
+
             {/* Roadmap selector */}
             <div className="relative" ref={menuRef}>
             <button
@@ -305,17 +394,14 @@ function App() {
       )}
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col lg:flex-row">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Input Panel - Left side */}
-        <aside className="w-full lg:w-[400px] lg:min-w-[400px] border-r border-[var(--theme-border)] no-print flex flex-col">
-          <div className="flex-1 overflow-hidden">
-            <InputPanel />
-          </div>
-          <StylePanel />
+        <aside className="w-full lg:w-[400px] lg:min-w-[400px] border-r border-[var(--theme-border)] no-print overflow-y-auto">
+          <InputPanel />
         </aside>
 
-        {/* Preview Panel - Right side */}
-        <section className="flex-1 min-w-0">
+        {/* Preview Panel - Right side (fixed) */}
+        <section className="flex-1 min-w-0 overflow-auto">
           <PreviewPanel />
         </section>
       </main>
@@ -325,6 +411,24 @@ function App() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal
+          roadmapId={currentRoadmapId}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* Style Modal */}
+      {showStyleModal && (
+        <StyleModal onClose={() => setShowStyleModal(false)} />
+      )}
+
+      {/* Endpoints Modal */}
+      {showEndpointsModal && (
+        <EndpointsModal onClose={() => setShowEndpointsModal(false)} />
+      )}
     </div>
   );
 }

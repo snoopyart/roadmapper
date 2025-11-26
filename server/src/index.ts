@@ -29,15 +29,26 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-// Rate limiting for auth endpoints
+// Rate limiting for auth endpoints (login/register only)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 requests per window
+  max: 20, // 20 requests per window for login/register
   message: { error: 'Too many attempts, please try again later' },
+  skip: (req) => {
+    // Don't rate limit session checks (/me) or logout
+    return req.path === '/me' || req.path === '/logout';
+  },
+});
+
+// General API rate limiter (more permissive)
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+  message: { error: 'Too many requests, please slow down' },
 });
 
 // API routes
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', apiLimiter, authLimiter, authRoutes);
 app.use('/api/roadmaps', roadmapsRoutes);
 app.use('/api/roadmaps', collaboratorsRoutes);
 

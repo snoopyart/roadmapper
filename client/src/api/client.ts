@@ -168,6 +168,13 @@ export interface TimelineEntry {
   date?: string;
 }
 
+export interface Endpoints {
+  start: string;
+  end: string;
+  startColor?: string;
+  endColor?: string;
+}
+
 export interface RoadmapWithAccess {
   id: string;
   ownerId: string;
@@ -177,6 +184,7 @@ export interface RoadmapWithAccess {
   orientation: 'horizontal' | 'vertical';
   fontSize: 'small' | 'medium' | 'large';
   entryShape: 'rounded' | 'square' | 'minimal';
+  endpoints?: Endpoints;
   isPublic: boolean;
   shareToken: string | null;
   createdAt: string;
@@ -201,6 +209,7 @@ export interface CreateRoadmapRequest {
   orientation?: 'horizontal' | 'vertical';
   fontSize?: 'small' | 'medium' | 'large';
   entryShape?: 'rounded' | 'square' | 'minimal';
+  endpoints?: Endpoints;
 }
 
 export interface UpdateRoadmapRequest extends CreateRoadmapRequest {}

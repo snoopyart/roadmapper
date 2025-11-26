@@ -9,6 +9,13 @@ export type Orientation = 'horizontal' | 'vertical';
 export type FontSize = 'small' | 'medium' | 'large';
 export type EntryShape = 'rounded' | 'square' | 'minimal';
 
+export interface Endpoints {
+  start: string;
+  end: string;
+  startColor?: string;
+  endColor?: string;
+}
+
 export interface Theme {
   id: string;
   name: string;
@@ -32,6 +39,7 @@ export interface RoadmapConfig {
   orientation: Orientation;
   fontSize: FontSize;
   entryShape: EntryShape;
+  endpoints: Endpoints;
   lastModified: number;
 }
 
@@ -55,6 +63,7 @@ export type RoadmapAction =
   | { type: 'SET_ORIENTATION'; payload: { orientation: Orientation } }
   | { type: 'SET_FONT_SIZE'; payload: { fontSize: FontSize } }
   | { type: 'SET_ENTRY_SHAPE'; payload: { entryShape: EntryShape } }
+  | { type: 'SET_ENDPOINTS'; payload: { endpoints: Endpoints } }
   | { type: 'LOAD_STATE'; payload: RoadmapState }
   | { type: 'RESET' }
   | { type: 'UNDO' }

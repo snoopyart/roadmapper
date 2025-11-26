@@ -33,6 +33,7 @@ const createDefaultRoadmap = (): RoadmapState => ({
   orientation: 'horizontal',
   fontSize: 'medium',
   entryShape: 'rounded',
+  endpoints: { start: '', end: '' },
   lastModified: Date.now(),
 });
 
@@ -46,6 +47,7 @@ function apiToLocal(roadmap: RoadmapWithAccess): RoadmapConfig {
     orientation: roadmap.orientation,
     fontSize: roadmap.fontSize,
     entryShape: roadmap.entryShape,
+    endpoints: roadmap.endpoints || { start: '', end: '' },
     lastModified: new Date(roadmap.updatedAt).getTime(),
   };
 }
@@ -120,6 +122,12 @@ function roadmapReducer(state: RoadmapState, action: RoadmapAction): RoadmapStat
         entryShape: action.payload.entryShape,
       });
 
+    case 'SET_ENDPOINTS':
+      return updateTimestamp({
+        ...state,
+        endpoints: action.payload.endpoints,
+      });
+
     case 'LOAD_STATE':
       return action.payload;
 
@@ -191,6 +199,8 @@ interface RoadmapContextValue {
   canRedo: boolean;
   isLoading: boolean;
   isSaving: boolean;
+  viewMode: 'edit' | 'view'; // 'view' for shared/public read-only access
+  exitViewMode: () => void;
   // Multi-roadmap functions
   savedRoadmaps: RoadmapConfig[];
   currentRoadmapId: string;
@@ -199,6 +209,20 @@ interface RoadmapContextValue {
   duplicateRoadmap: () => void;
   deleteRoadmap: (id: string) => void;
   importFromShare: (data: Partial<RoadmapConfig>) => void;
+}
+
+// Parse URL for /share/{token} or /public/{id}
+function parseShareUrl(): { type: 'share' | 'public'; id: string } | null {
+  const path = window.location.pathname;
+  const shareMatch = path.match(/^\/share\/([a-zA-Z0-9_-]+)$/);
+  if (shareMatch) {
+    return { type: 'share', id: shareMatch[1] };
+  }
+  const publicMatch = path.match(/^\/public\/([a-zA-Z0-9_-]+)$/);
+  if (publicMatch) {
+    return { type: 'public', id: publicMatch[1] };
+  }
+  return null;
 }
 
 const RoadmapContext = createContext<RoadmapContextValue | null>(null);
@@ -230,6 +254,7 @@ function loadSavedRoadmaps(): SavedRoadmapsState {
           orientation: oldParsed.orientation || 'horizontal',
           fontSize: oldParsed.fontSize || 'medium',
           entryShape: oldParsed.entryShape || 'rounded',
+          endpoints: oldParsed.endpoints || { start: '', end: '' },
           lastModified: Date.now(),
         };
         return {
@@ -296,6 +321,8 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [apiInitialized, setApiInitialized] = useState(false);
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
+  const [shareUrlChecked, setShareUrlChecked] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string>('');
   const prevUserRef = useRef<typeof user>(null);
@@ -303,6 +330,48 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
   const state = historyState.present;
   const canUndo = historyState.past.length > 0;
   const canRedo = historyState.future.length > 0;
+
+  // Check for /share/{token} or /public/{id} URL on mount
+  useEffect(() => {
+    if (shareUrlChecked) return;
+
+    const shareInfo = parseShareUrl();
+    if (shareInfo) {
+      setIsLoading(true);
+      setViewMode('view');
+
+      const fetchPromise = shareInfo.type === 'share'
+        ? api.getSharedRoadmap(shareInfo.id)
+        : api.getPublicRoadmap(shareInfo.id);
+
+      fetchPromise
+        .then(({ roadmap }) => {
+          const loadedRoadmap = apiToLocal(roadmap);
+          dispatch({ type: 'LOAD_STATE', payload: loadedRoadmap });
+        })
+        .catch((err) => {
+          console.error('Failed to load shared roadmap:', err);
+          // On error, redirect to home
+          window.history.replaceState(null, '', '/');
+          setViewMode('edit');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+    setShareUrlChecked(true);
+  }, [shareUrlChecked]);
+
+  const exitViewMode = useCallback(() => {
+    setViewMode('edit');
+    window.history.replaceState(null, '', '/');
+    // Reload local/user roadmaps
+    const localData = loadSavedRoadmaps();
+    setSavedRoadmaps({ type: 'SET', payload: localData.roadmaps });
+    setCurrentRoadmapId(localData.currentId);
+    const roadmap = localData.roadmaps.find(r => r.id === localData.currentId) || localData.roadmaps[0];
+    dispatch({ type: 'LOAD_STATE', payload: roadmap });
+  }, []);
 
   // Load roadmaps from API when authenticated
   useEffect(() => {
@@ -403,6 +472,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
       orientation: state.orientation,
       fontSize: state.fontSize,
       entryShape: state.entryShape,
+      endpoints: state.endpoints,
     });
 
     if (stateKey === lastSavedRef.current) return;
@@ -422,6 +492,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         orientation: state.orientation,
         fontSize: state.fontSize,
         entryShape: state.entryShape,
+        endpoints: state.endpoints,
       })
         .then(() => {
           lastSavedRef.current = stateKey;
@@ -582,6 +653,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
         orientation: data.orientation || 'horizontal',
         fontSize: data.fontSize || 'medium',
         entryShape: data.entryShape || 'rounded',
+        endpoints: data.endpoints || { start: '', end: '' },
         lastModified: Date.now(),
       };
       setSavedRoadmaps({ type: 'ADD', payload: newRoadmap });
@@ -614,6 +686,8 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
       canRedo,
       isLoading: isLoading || authLoading,
       isSaving,
+      viewMode,
+      exitViewMode,
       savedRoadmaps,
       currentRoadmapId,
       switchRoadmap,

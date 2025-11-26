@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useRoadmapContext } from '../context/RoadmapContext';
-import type { TimelineEntry, Orientation, FontSize, EntryShape } from '../types';
+import type { TimelineEntry, Orientation, FontSize, EntryShape, Endpoints } from '../types';
 
 export function useRoadmap() {
   const {
@@ -10,6 +10,8 @@ export function useRoadmap() {
     canRedo,
     isLoading,
     isSaving,
+    viewMode,
+    exitViewMode,
     savedRoadmaps,
     currentRoadmapId,
     switchRoadmap,
@@ -81,6 +83,13 @@ export function useRoadmap() {
     [dispatch]
   );
 
+  const setEndpoints = useCallback(
+    (endpoints: Endpoints) => {
+      dispatch({ type: 'SET_ENDPOINTS', payload: { endpoints } });
+    },
+    [dispatch]
+  );
+
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
   }, [dispatch]);
@@ -124,6 +133,7 @@ export function useRoadmap() {
     orientation: state.orientation,
     fontSize: state.fontSize,
     entryShape: state.entryShape,
+    endpoints: state.endpoints,
     lastModified: state.lastModified,
 
     // Entry operations
@@ -140,6 +150,7 @@ export function useRoadmap() {
     setOrientation,
     setFontSize,
     setEntryShape,
+    setEndpoints,
 
     // Undo/Redo
     undo,
@@ -158,6 +169,10 @@ export function useRoadmap() {
     // Loading states
     isLoading,
     isSaving,
+
+    // View mode (for shared/public roadmaps)
+    viewMode,
+    exitViewMode,
 
     // Other
     reset,
