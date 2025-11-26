@@ -8,6 +8,8 @@ export function useRoadmap() {
     dispatch,
     canUndo,
     canRedo,
+    isLoading,
+    isSaving,
     savedRoadmaps,
     currentRoadmapId,
     switchRoadmap,
@@ -152,6 +154,10 @@ export function useRoadmap() {
     createNewRoadmap,
     duplicateRoadmap,
     deleteRoadmap,
+
+    // Loading states
+    isLoading,
+    isSaving,
 
     // Other
     reset,

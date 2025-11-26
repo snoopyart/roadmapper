@@ -3,6 +3,8 @@ import { InputPanel } from './components/InputPanel';
 import { PreviewPanel } from './components/PreviewPanel';
 import { StylePanel } from './components/StylePanel';
 import { useRoadmap } from './hooks/useRoadmap';
+import { useAuth } from './context/AuthContext';
+import { AuthModal } from './components/Auth';
 
 function App() {
   const {
@@ -18,15 +20,23 @@ function App() {
     deleteRoadmap,
   } = useRoadmap();
 
+  const { user, isLoading: authLoading, logout } = useAuth();
+
   const [showRoadmapMenu, setShowRoadmapMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowRoadmapMenu(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -96,8 +106,9 @@ function App() {
             </div>
           </div>
 
-          {/* Roadmap selector */}
-          <div className="relative" ref={menuRef}>
+          <div className="flex items-center gap-3">
+            {/* Roadmap selector */}
+            <div className="relative" ref={menuRef}>
             <button
               type="button"
               onClick={() => setShowRoadmapMenu(!showRoadmapMenu)}
@@ -191,6 +202,65 @@ function App() {
                 </div>
               </div>
             )}
+            </div>
+
+            {/* User menu / Login button */}
+            {authLoading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--theme-text)] hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[var(--theme-primary)] text-white flex items-center justify-center text-sm font-medium">
+                    {(user.name?.[0] || user.email[0]).toUpperCase()}
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-[var(--theme-border)] z-50">
+                    <div className="p-3 border-b border-[var(--theme-border)]">
+                      <p className="text-sm font-medium text-[var(--theme-text)] truncate">
+                        {user.name || 'User'}
+                      </p>
+                      <p className="text-xs text-[var(--theme-text-muted)] truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logout();
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAuthModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-[var(--theme-primary)] rounded-md hover:opacity-90 transition-opacity"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -249,6 +319,12 @@ function App() {
           <PreviewPanel />
         </section>
       </main>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }
