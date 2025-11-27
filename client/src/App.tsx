@@ -62,6 +62,15 @@ function App() {
     });
   };
 
+  // Show embed view for iframe embedding (minimal, no header)
+  if (viewMode === 'embed') {
+    return (
+      <div className="h-screen overflow-auto bg-[var(--theme-background)]">
+        <PreviewPanel />
+      </div>
+    );
+  }
+
   // Show simplified view for shared/public roadmaps
   if (viewMode === 'view') {
     return (

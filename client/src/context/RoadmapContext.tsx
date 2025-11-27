@@ -231,7 +231,7 @@ interface RoadmapContextValue {
   canRedo: boolean;
   isLoading: boolean;
   isSaving: boolean;
-  viewMode: 'edit' | 'view'; // 'view' for shared/public read-only access
+  viewMode: 'edit' | 'view' | 'embed'; // 'view' for shared/public read-only, 'embed' for iframe embeds
   exitViewMode: () => void;
   // Multi-roadmap functions
   savedRoadmaps: RoadmapConfig[];
@@ -243,8 +243,8 @@ interface RoadmapContextValue {
   importFromShare: (data: Partial<RoadmapConfig>) => void;
 }
 
-// Parse URL for /share/{token} or /public/{id}
-function parseShareUrl(): { type: 'share' | 'public'; id: string } | null {
+// Parse URL for /share/{token}, /public/{id}, or /embed/{id}
+function parseShareUrl(): { type: 'share' | 'public' | 'embed'; id: string } | null {
   const path = window.location.pathname;
   const shareMatch = path.match(/^\/share\/([a-zA-Z0-9_-]+)$/);
   if (shareMatch) {
@@ -253,6 +253,10 @@ function parseShareUrl(): { type: 'share' | 'public'; id: string } | null {
   const publicMatch = path.match(/^\/public\/([a-zA-Z0-9_-]+)$/);
   if (publicMatch) {
     return { type: 'public', id: publicMatch[1] };
+  }
+  const embedMatch = path.match(/^\/embed\/([a-zA-Z0-9_-]+)$/);
+  if (embedMatch) {
+    return { type: 'embed', id: embedMatch[1] };
   }
   return null;
 }
@@ -357,7 +361,7 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [apiInitialized, setApiInitialized] = useState(false);
-  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit');
+  const [viewMode, setViewMode] = useState<'edit' | 'view' | 'embed'>('edit');
   const [shareUrlChecked, setShareUrlChecked] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string>('');
@@ -367,15 +371,16 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
   const canUndo = historyState.past.length > 0;
   const canRedo = historyState.future.length > 0;
 
-  // Check for /share/{token} or /public/{id} URL on mount
+  // Check for /share/{token}, /public/{id}, or /embed/{id} URL on mount
   useEffect(() => {
     if (shareUrlChecked) return;
 
     const shareInfo = parseShareUrl();
     if (shareInfo) {
       setIsLoading(true);
-      setViewMode('view');
+      setViewMode(shareInfo.type === 'embed' ? 'embed' : 'view');
 
+      // Embed uses public roadmap API (same as public)
       const fetchPromise = shareInfo.type === 'share'
         ? api.getSharedRoadmap(shareInfo.id)
         : api.getPublicRoadmap(shareInfo.id);

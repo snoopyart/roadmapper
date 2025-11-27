@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { TimelineEntry, EntryShape, FontSize } from '../../types';
 
 interface TimelineItemProps {
@@ -47,9 +48,9 @@ export const TimelineItem = memo(function TimelineItem({ entry, shape, fontSize,
       </h3>
 
       {hasDescription && (
-        <p className={`mt-1 text-[var(--theme-text-muted)] ${fonts.desc}`}>
-          {entry.description}
-        </p>
+        <div className={`mt-1 text-[var(--theme-text-muted)] ${fonts.desc} prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:text-[var(--theme-text)] prose-a:text-[var(--theme-primary)]`}>
+          <ReactMarkdown>{entry.description!}</ReactMarkdown>
+        </div>
       )}
 
       {hasDate && (

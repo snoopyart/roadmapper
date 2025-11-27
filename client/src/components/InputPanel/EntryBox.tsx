@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { TimelineEntry } from '../../types';
 import { DragHandle } from './DragHandle';
 import { DateInput } from './DateInput';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface EntryBoxProps {
   entry: TimelineEntry;
@@ -109,13 +110,12 @@ export const EntryBox = memo(function EntryBox({
             >
               Description
             </label>
-            <textarea
+            <MarkdownEditor
               id={`description-${entry.id}`}
               value={entry.description || ''}
-              onChange={(e) => onUpdate(entry.id, { description: e.target.value })}
-              placeholder="Optional description..."
+              onChange={(description) => onUpdate(entry.id, { description })}
+              placeholder="Optional description (supports markdown)..."
               rows={2}
-              className="w-full px-3 py-2 border border-[var(--theme-border)] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent resize-none"
             />
           </div>
 

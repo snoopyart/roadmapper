@@ -13,10 +13,13 @@ export function ShareModal({ roadmapId, onClose }: ShareModalProps) {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>('initial');
   const [error, setError] = useState<string | null>(null);
+  const [embedHeight, setEmbedHeight] = useState('400');
   const toast = useToast();
 
   const publicUrl = `${window.location.origin}/public/${roadmapId}`;
   const shareUrl = shareToken ? `${window.location.origin}/share/${shareToken}` : null;
+  const embedUrl = `${window.location.origin}/embed/${roadmapId}`;
+  const embedCode = `<iframe src="${embedUrl}" width="100%" height="${embedHeight}" frameborder="0" style="border-radius: 8px; border: 1px solid #e2e8f0;"></iframe>`;
 
   // Fetch roadmap data on mount
   useEffect(() => {
@@ -226,6 +229,53 @@ export function ShareModal({ roadmapId, onClose }: ShareModalProps) {
                 >
                   {loading === 'token' ? 'Generating...' : 'Generate share link'}
                 </button>
+              )}
+            </div>
+
+            {/* Embed code section */}
+            <div className="border-t border-[var(--theme-border)] pt-4">
+              <div className="mb-2">
+                <h3 className="text-sm font-medium text-[var(--theme-text)]">Embed code</h3>
+                <p className="text-xs text-[var(--theme-text-muted)]">
+                  {isPublic
+                    ? 'Copy the code below to embed this roadmap on your website'
+                    : 'Make your roadmap public to generate embed code'}
+                </p>
+              </div>
+
+              {isPublic && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="embed-height" className="text-xs text-[var(--theme-text-muted)]">
+                      Height:
+                    </label>
+                    <input
+                      id="embed-height"
+                      type="number"
+                      value={embedHeight}
+                      onChange={(e) => setEmbedHeight(e.target.value)}
+                      min="200"
+                      max="1000"
+                      step="50"
+                      className="w-20 px-2 py-1 text-sm bg-[var(--theme-background)] border border-[var(--theme-border)] rounded-md text-[var(--theme-text)]"
+                    />
+                    <span className="text-xs text-[var(--theme-text-muted)]">px</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <textarea
+                      readOnly
+                      value={embedCode}
+                      rows={3}
+                      className="flex-1 px-3 py-2 text-xs font-mono bg-[var(--theme-background)] border border-[var(--theme-border)] rounded-md text-[var(--theme-text)] resize-none"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(embedCode, 'Embed code')}
+                      className="px-3 py-2 text-sm font-medium text-white bg-[var(--theme-primary)] rounded-md hover:opacity-90 transition-opacity self-start"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </>

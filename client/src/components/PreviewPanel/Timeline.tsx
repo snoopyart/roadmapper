@@ -129,15 +129,9 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
         className="relative origin-top-left transition-transform duration-200"
         style={{ transform: isHorizontal ? `scale(${scale})` : undefined }}
       >
-        {/* Timeline line */}
+        {/* Timeline line - using margin for centering (html2canvas compatible) */}
         <div
-          className={`
-            absolute opacity-30
-            ${isHorizontal
-              ? 'left-0 right-0 top-1/2 -translate-y-1/2'
-              : 'top-0 bottom-0 left-8'
-            }
-          `}
+          className="absolute opacity-30"
           style={{
             backgroundColor: lineStyle === 'solid' ? 'var(--theme-primary)' : 'transparent',
             backgroundImage: lineStyle === 'dashed'
@@ -145,8 +139,21 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
               : lineStyle === 'dotted'
               ? `repeating-linear-gradient(${isHorizontal ? '90deg' : '180deg'}, var(--theme-primary), var(--theme-primary) 4px, transparent 4px, transparent 12px)`
               : undefined,
-            height: isHorizontal ? thickness : undefined,
-            width: isHorizontal ? undefined : thickness,
+            ...(isHorizontal
+              ? {
+                  left: 0,
+                  right: 0,
+                  top: '50%',
+                  marginTop: `-${parseInt(thickness) / 2}px`,
+                  height: thickness,
+                }
+              : {
+                  top: 0,
+                  bottom: 0,
+                  left: '32px',
+                  width: thickness,
+                }
+            ),
           }}
         />
 
@@ -163,9 +170,12 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
           {/* Start Point */}
           {hasStartPoint && (
             <div className={`relative flex-shrink-0 ${isHorizontal ? 'self-center -mt-14 z-10' : ''}`}>
-              {/* Marker in vertical mode */}
+              {/* Vertical mode: marker centered on timeline line (html2canvas compatible) */}
               {!isHorizontal && startStyle !== 'none' && (
-                <div className="absolute z-10 -left-9 top-1/2 -translate-y-1/2">
+                <div
+                  className="absolute z-10 w-6"
+                  style={{ left: '-48px', top: '50%', marginTop: '-8px' }}
+                >
                   <EndpointMarker style={startStyle} color={startColor} direction="start" isHorizontal={isHorizontal} />
                 </div>
               )}
@@ -191,28 +201,31 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
 
           {entries.map((entry, index) => (
             <div key={entry.id} className="relative">
-              {/* Connector dot */}
+              {/* Connector dot - using margin auto for centering (html2canvas compatible) */}
               <div
-                className={`
-                  absolute w-3 h-3 rounded-full bg-[var(--theme-primary)] border-2 border-[var(--theme-surface)] z-10
-                  ${isHorizontal
-                    ? 'left-1/2 -translate-x-1/2 -top-6'
-                    : '-left-7 top-4'
-                  }
-                `}
-              />
-
-              {/* Item number badge */}
-              <div
-                className={`
-                  absolute bg-[var(--theme-primary)] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center z-10
-                  ${isHorizontal
-                    ? 'left-1/2 -translate-x-1/2 -top-12'
-                    : '-left-12 top-3'
-                  }
-                `}
+                className={`absolute z-10 ${isHorizontal ? '-top-6' : 'top-4'}`}
+                style={isHorizontal
+                  ? { left: '50%', marginLeft: '-6px' }
+                  : { left: '-28px' }
+                }
               >
-                {index + 1}
+                <div className="w-3 h-3 rounded-full bg-[var(--theme-primary)] border-2 border-[var(--theme-surface)]" />
+              </div>
+
+              {/* Item number badge - using text-align center and line-height for centering (html2canvas compatible) */}
+              <div
+                className={`absolute z-10 ${isHorizontal ? '-top-12' : 'top-3'}`}
+                style={isHorizontal
+                  ? { left: '50%', marginLeft: '-10px' }
+                  : { left: '-48px' }
+                }
+              >
+                <div
+                  className="w-5 h-5 rounded-full bg-[var(--theme-primary)] text-white text-xs font-bold text-center"
+                  style={{ lineHeight: '20px' }}
+                >
+                  {index + 1}
+                </div>
               </div>
 
               <TimelineItem
@@ -227,9 +240,12 @@ export function Timeline({ entries, orientation, fontSize, entryShape, endpoints
           {/* End Point */}
           {hasEndPoint && (
             <div className={`relative flex-shrink-0 ${isHorizontal ? 'self-center -mt-14 z-10' : ''}`}>
-              {/* Marker in vertical mode */}
+              {/* Vertical mode: marker centered on timeline line (html2canvas compatible) */}
               {!isHorizontal && endStyle !== 'none' && (
-                <div className="absolute z-10 -left-9 top-1/2 -translate-y-1/2">
+                <div
+                  className="absolute z-10 w-6"
+                  style={{ left: '-48px', top: '50%', marginTop: '-8px' }}
+                >
                   <EndpointMarker style={endStyle} color={endColor} direction="end" isHorizontal={isHorizontal} />
                 </div>
               )}
